@@ -15,7 +15,7 @@ file_bytecode = file_vm.."/bytecode.h"
 file_audiostudio = "ClawAudioStudio-master/ClawAudioStudio/bin/Release"
 
 cmd_build_vm = "gcc -Wall --std=c11 -o claw-vm.exe claw-vm-master\\vm.c"
-cmd_compile = clawdir.."\\ClawBinaryCompiler.exe"
+cmd_compile = clawdir.."\\ClawBinaryCompiler.exe <file> <out>"
 cmd_run = clawdir.."\\claw-vm.exe <file>"
 
 function string.starts(String,Start)
