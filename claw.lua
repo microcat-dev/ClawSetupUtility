@@ -14,9 +14,10 @@ file_assembler = "ClawAssembler-master/ClawAssembler/bin/Release"
 file_bytecode = file_vm.."/bytecode.h"
 file_audiostudio = "ClawAudioStudio-master/ClawAudioStudio/bin/Release"
 
-cmd_build_vm = "gcc -Wall --std=c11 -o claw-vm.exe claw-vm-master\\vm.c"
+cmd_build_vm = "gcc -Wall -O3 --std=c11 -o claw-vm.exe claw-vm-master\\vm.c"
 cmd_compile = clawdir.."\\ClawBinaryCompiler.exe <file> <out>"
 cmd_run = clawdir.."\\claw-vm.exe <file>"
+cmd_preprocess = "gcc -E -P -W -x c -o <out> <file>"
 
 function string.starts(String,Start)
    return string.sub(String,1,string.len(Start))==Start
@@ -167,37 +168,62 @@ function update()
 end
 
 function run(file)
-	assert(os.execute(cmd_run:gsub("<file>", file)))
+	local cmd = cmd_run:gsub("<file>", file)
+	assert(os.execute(cmd))
 end
 
-function assemble(file, out)
-	assert(os.execute(cmd_compile:gsub("<file>", file):gsub("<out>", out)))
+function preprocess(file, out)
+	local cmd = cmd_preprocess:gsub("<file>", file):gsub("<out>", out)
+	assert(os.execute(cmd))
 end
 
-checkargs(1, "Error: Missing command.\nUse \"claw.lua h\" for more info.")
+function assemble(file, out)	
+	local cmd = cmd_compile:gsub("<file>", file):gsub("<out>", out)
+	assert(os.execute(cmd))
+end
 
-if arg[1] == "r" then
-	checkargs(2, "Error: Missing command.\nUsage: claw.lua r <file>")
-	run(arg[2])
-elseif arg[1] == "a" then
-	checkargs(3, "Error: Missing command.\nUsage: claw.lua c <file> <out>")
-	checkoverwrite()
-	assemble(arg[2], arg[3])
-elseif arg[1] == "ar" then
-	checkargs(3, "Error: Missing command.\nUsage: claw.lua cr <file> <out>")
-	checkoverwrite()
-	assemble(arg[2], arg[3])
-	run(arg[3])
-elseif arg[1] == "u" then
-	update()
-elseif arg[1] == "h" then
+function help()
 	print([[claw.lua - claw sdk utility program.
 Usage: claw.lua <option> [file] [file]
 
 options:
 r <file>         - Run <file>.
-c <file> <out>   - Assemble <file> and save the bytecode in <out>.
-cr <file> <out>  - Assemble <file> and save the bytecode in <out>, then run <out>.
+a <file> <out>   - Assemble <file> and save the bytecode in <out>.
+p <file> <out>   - Preprocess <file> and save the bytecode in <out>.
 u                - Update or install the assembler and virtual machine.
-h                - Display this help message.]])
+h                - Display this help message.
+
+Flags r, a and p and be combined.]])
+end
+
+checkargs(1, "Error: Missing command.\nUse \"claw.lua h\" for more info.")
+
+file = arg[2]
+out = arg[3]
+
+for flag in arg[1]:gmatch(".") do
+	if flag == "r" then
+		checkargs(2, "Error: Missing command.\nUsage: claw.lua "..flag.." <file>")
+		print("Running "..file)
+		local t0 = os.clock()
+		run(file)
+		local t1 = os.clock()
+		print("\ntime: "..(t1-t0).."s")
+	elseif flag == "a" then
+		checkargs(3, "Error: Missing command.\nUsage: claw.lua "..flag.." <file> <out>")
+		print("Assembling "..file)
+		assemble(file, out)
+		file = out
+	elseif flag == "p" then
+		checkargs(3, "Error: Missing command.\nUsage: claw.lua "..flag.." <file> <out>")
+		print("Preprocessing "..file)
+		preprocess(file, out)
+		file = out
+	elseif flag == "u" then
+		update()
+		break
+	elseif flag == "h" then
+		help()
+		break
+	end
 end
