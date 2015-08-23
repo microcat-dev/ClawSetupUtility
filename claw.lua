@@ -15,9 +15,8 @@ file_bytecode = file_vm.."/bytecode.h"
 file_audiostudio = "ClawAudioStudio-master/ClawAudioStudio/bin/Release"
 
 cmd_build_vm = "gcc -Wall -O3 --std=c11 -o claw-vm.exe claw-vm-master\\vm.c"
-cmd_compile = clawdir.."\\ClawBinaryCompiler.exe <file> <out>"
+cmd_assemble = clawdir.."\\csm.exe <file> -o <out>"
 cmd_run = clawdir.."\\claw-vm.exe <file>"
-cmd_preprocess = "gcc -E -P -W -x c -o <out> <file>"
 
 function string.starts(String,Start)
    return string.sub(String,1,string.len(Start))==Start
@@ -172,13 +171,9 @@ function run(file)
 	assert(os.execute(cmd))
 end
 
-function preprocess(file, out)
-	local cmd = cmd_preprocess:gsub("<file>", file):gsub("<out>", out)
-	assert(os.execute(cmd))
-end
-
 function assemble(file, out)	
-	local cmd = cmd_compile:gsub("<file>", file):gsub("<out>", out)
+	local cmd = cmd_assemble:gsub("<file>", file):gsub("<out>", out)
+	print(cmd)
 	assert(os.execute(cmd))
 end
 
@@ -213,11 +208,6 @@ for flag in arg[1]:gmatch(".") do
 		checkargs(3, "Error: Missing command.\nUsage: claw.lua "..flag.." <file> <out>")
 		print("Assembling "..file)
 		assemble(file, out)
-		file = out
-	elseif flag == "p" then
-		checkargs(3, "Error: Missing command.\nUsage: claw.lua "..flag.." <file> <out>")
-		print("Preprocessing "..file)
-		preprocess(file, out)
 		file = out
 	elseif flag == "u" then
 		update()
