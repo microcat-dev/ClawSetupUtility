@@ -14,9 +14,10 @@ file_assembler = "ClawAssembler-master/ClawAssembler/bin/Release"
 file_bytecode = file_vm.."/bytecode.h"
 file_audiostudio = "ClawAudioStudio-master/ClawAudioStudio/bin/Release"
 
-cmd_build_vm = "gcc -Wall -O3 --std=c11 -o claw-vm.exe claw-vm-master\\vm.c"
+cmd_build_vm = "make"
+cmd_move_vm = "mv "..file_vm.."\\vm.exe ."
 cmd_assemble = clawdir.."\\csm.exe <file> -o <out>"
-cmd_run = clawdir.."\\claw-vm.exe <file>"
+cmd_run = clawdir.."\\vm.exe <file>"
 
 function string.starts(String,Start)
    return string.sub(String,1,string.len(Start))==Start
@@ -141,7 +142,10 @@ function update()
 	download(c, url_bytecode, file_bytecode)
 
 	print("Building VM...")
+	lfs.chdir(file_vm)
 	assert(os.execute(cmd_build_vm))
+	lfs.chdir("..")
+	assert(os.execute(cmd_move_vm))
 
 	print("Downloading CLAW Assembler...")
 	download(c, url_assembler, zip_assembler)
@@ -173,7 +177,6 @@ end
 
 function assemble(file, out)	
 	local cmd = cmd_assemble:gsub("<file>", file):gsub("<out>", out)
-	print(cmd)
 	assert(os.execute(cmd))
 end
 
